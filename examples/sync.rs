@@ -1,13 +1,10 @@
 use anyhow::*;
 use std::time::Instant;
-use bi_directional_pipe::pipe;
+use bi_directional_pipe::sync::pipe;
 use tokio::task::JoinHandle;
-
 
 #[tokio::main]
 async fn main()->Result<()> {
-
-    let start=Instant::now();
 
     let (left,right)=pipe();
 
@@ -20,7 +17,7 @@ async fn main()->Result<()> {
         Ok(())
     });
 
-
+    let start=Instant::now();
     loop {
         if let Ok(v)=left.recv().await{
             left.send(v+1);
@@ -28,10 +25,9 @@ async fn main()->Result<()> {
             break;
         }
     }
+    println!("time {}ms",start.elapsed().as_millis());
 
     join.await??;
-
-    println!("time {}ms",start.elapsed().as_millis());
 
     Ok(())
 }
