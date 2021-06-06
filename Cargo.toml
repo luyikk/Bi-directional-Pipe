@@ -1,0 +1,13 @@
+[package]
+name = "bi-directional-pipe"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+crossbeam = "0.8.1"
+anyhow="1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
