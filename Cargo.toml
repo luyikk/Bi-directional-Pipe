@@ -15,3 +15,8 @@ anyhow="1"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
+
+[profile.release]
+panic="abort"
+lto = "fat"
+codegen-units = 1
