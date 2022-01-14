@@ -1,6 +1,6 @@
 [package]
 name = "bi-directional-pipe"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2018"
 repository = "https://github.com/luyikk/Bi-directional-Pipe"
 documentation = "https://docs.rs/bi-directional-pipe"
@@ -16,7 +16,3 @@ anyhow="1"
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
 
-[profile.release]
-panic="abort"
-lto = "fat"
-codegen-units = 1

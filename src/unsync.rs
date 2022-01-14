@@ -91,10 +91,11 @@ impl<T> Future for PipeHandler<T>{
     #[inline]
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         unsafe {
-            *self.my_status.wake.get()=Some(cx.waker().clone());
-            if let Some(r) = (*self.my_status.result.get()).take() {
+            let this= Pin::into_inner(self);
+            if let Some(r) = (*this.my_status.result.get()).take() {
                 Poll::Ready(r)
             } else {
+                *this.my_status.wake.get()=Some(cx.waker().clone());
                 Poll::Pending
             }
         }

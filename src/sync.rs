@@ -63,7 +63,7 @@ impl<L,R> Right<L,R>{
     pub fn send(&self,v:L){
         self.left_status.result.store(Some(Ok(v)));
         if let Some(wake)= self.left_status.wake.take(){
-            wake.wake()
+             wake.wake()
         }
     }
 }
@@ -83,11 +83,11 @@ impl<T> Future for PipeHandler<T>{
     type Output = Result<T>;
     #[inline]
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-
-        self.my_status.wake.store(Some(cx.waker().clone()));
-        if  let Some(r)=self.my_status.result.take(){
+        let this= Pin::into_inner(self);
+        if  let Some(r)=this.my_status.result.take(){
             Poll::Ready(r)
         }else{
+            this.my_status.wake.store(Some(cx.waker().clone()));
             Poll::Pending
         }
 
