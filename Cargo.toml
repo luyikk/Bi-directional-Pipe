@@ -1,6 +1,6 @@
 [package]
 name = "bi-directional-pipe"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2018"
 repository = "https://github.com/luyikk/Bi-directional-Pipe"
 documentation = "https://docs.rs/bi-directional-pipe"
@@ -11,8 +11,8 @@ license = "MIT/Apache-2.0"
 
 [dependencies]
 crossbeam = "0.8"
-anyhow="1"
+thiserror = "1"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
-
+anyhow = "1"

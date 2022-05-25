@@ -4,7 +4,7 @@ Async Bi-directional Pipe
 sync example:
 
 ```rust
-use anyhow::*;
+use anyhow::{Result,ensure};
 use bi_directional_pipe::sync::pipe;
 use tokio::task::JoinHandle;
 
@@ -36,7 +36,7 @@ async fn main()->Result<()> {
 
 unsync example:
 ```rust
-use anyhow::*;
+use anyhow::{Result,ensure};
 use std::time::Instant;
 use bi_directional_pipe::unsync::pipe;
 use tokio::task::JoinHandle;

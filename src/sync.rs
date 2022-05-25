@@ -3,7 +3,8 @@ use std::task::{Context, Poll, Waker};
 use std::pin::Pin;
 use std::sync::Arc;
 use crossbeam::atomic::AtomicCell;
-use anyhow::*;
+use std::io::{Error, ErrorKind, Result};
+use crate::PipeError;
 
 
 struct Status<T>{
@@ -39,8 +40,8 @@ impl<L,R> Left<L,R>{
 impl<L,R> Drop for Left<L,R>{
     #[inline]
     fn drop(&mut self) {
-        self.my_status.result.store(Some(Err(anyhow!("left is drop"))));
-        self.right_status.result.store(Some(Err(anyhow!("left is drop"))));
+        self.my_status.result.store(Some(Err(Error::new(ErrorKind::Other,PipeError::LeftDrop))));
+        self.right_status.result.store(Some(Err(Error::new(ErrorKind::Other,PipeError::LeftDrop))));
         if let Some(wake)= self.right_status.wake.take(){
             wake.wake()
         }
@@ -71,8 +72,8 @@ impl<L,R> Right<L,R>{
 impl<L,R> Drop for Right<L,R>{
     #[inline]
     fn drop(&mut self) {
-        self.my_status.result.store(Some(Err(anyhow!("right is drop"))));
-        self.left_status.result.store(Some(Err(anyhow!("right is drop"))));
+        self.my_status.result.store(Some(Err(Error::new(ErrorKind::Other,PipeError::RightDrop))));
+        self.left_status.result.store(Some(Err(Error::new(ErrorKind::Other,PipeError::RightDrop))));
         if let Some(wake)= self.left_status.wake.take(){
             wake.wake()
         }

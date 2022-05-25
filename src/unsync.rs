@@ -1,9 +1,10 @@
 use std::future::Future;
 use std::task::{Context, Poll, Waker};
 use std::pin::Pin;
-use anyhow::*;
+use std::io::{Error, ErrorKind, Result};
 use std::cell::UnsafeCell;
 use std::rc::Rc;
+use crate::PipeError;
 
 struct Status<T>{
     result:UnsafeCell<Option<Result<T>>>,
@@ -41,8 +42,8 @@ impl<L,R> Drop for Left<L,R>{
     #[inline]
     fn drop(&mut self) {
         unsafe {
-            *self.my_status.result.get()=Some(Err(anyhow!("left is drop")));
-            *self.right_status.result.get()=Some(Err(anyhow!("left is drop")));
+            *self.my_status.result.get()=Some(Err(Error::new(ErrorKind::Other,PipeError::LeftDrop)));
+            *self.right_status.result.get()=Some(Err(Error::new(ErrorKind::Other,PipeError::LeftDrop)));
             if let Some(wake) = (*self.right_status.wake.get()).take() {
                 wake.wake()
             }
@@ -77,8 +78,8 @@ impl<L,R> Drop for Right<L,R>{
     #[inline]
     fn drop(&mut self) {
         unsafe {
-            *self.my_status.result.get()=Some(Err(anyhow!("right is drop")));
-            *self.left_status.result.get()=Some(Err(anyhow!("right is drop")));
+            *self.my_status.result.get()=Some(Err(Error::new(ErrorKind::Other,PipeError::RightDrop)));
+            *self.left_status.result.get()=Some(Err(Error::new(ErrorKind::Other,PipeError::RightDrop)));
             if let Some(wake) = (*self.left_status.wake.get()).take() {
                 wake.wake()
             }
