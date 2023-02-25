@@ -1,15 +1,16 @@
 use std::future::Future;
-use std::task::{Context, Poll, Waker};
+use std::task::{Context, Poll};
 use std::pin::Pin;
 use std::sync::Arc;
 use crossbeam::atomic::AtomicCell;
 use std::io::{Error, ErrorKind, Result};
+use atomic_waker::AtomicWaker;
 use crate::PipeError;
 
 
 struct Status<T>{
     result:AtomicCell<Option<Result<T>>>,
-    wake:AtomicCell<Option<Waker>>
+    wake:AtomicWaker
 }
 
 pub struct PipeHandler<T>{
@@ -31,9 +32,7 @@ impl<L,R> Left<L,R>{
     #[inline]
     pub fn send(&self,v:R){
         self.right_status.result.store(Some(Ok(v)));
-        if let Some(wake)= self.right_status.wake.take(){
-            wake.wake()
-        }
+        self.right_status.wake.wake();
     }
 }
 
@@ -42,9 +41,7 @@ impl<L,R> Drop for Left<L,R>{
     fn drop(&mut self) {
         self.my_status.result.store(Some(Err(Error::new(ErrorKind::Other,PipeError::LeftDrop))));
         self.right_status.result.store(Some(Err(Error::new(ErrorKind::Other,PipeError::LeftDrop))));
-        if let Some(wake)= self.right_status.wake.take(){
-            wake.wake()
-        }
+        self.right_status.wake.wake();
     }
 }
 
@@ -63,9 +60,7 @@ impl<L,R> Right<L,R>{
     #[inline]
     pub fn send(&self,v:L){
         self.left_status.result.store(Some(Ok(v)));
-        if let Some(wake)= self.left_status.wake.take(){
-             wake.wake()
-        }
+        self.left_status.wake.wake();
     }
 }
 
@@ -74,9 +69,7 @@ impl<L,R> Drop for Right<L,R>{
     fn drop(&mut self) {
         self.my_status.result.store(Some(Err(Error::new(ErrorKind::Other,PipeError::RightDrop))));
         self.left_status.result.store(Some(Err(Error::new(ErrorKind::Other,PipeError::RightDrop))));
-        if let Some(wake)= self.left_status.wake.take(){
-            wake.wake()
-        }
+        self.left_status.wake.wake();
     }
 }
 
@@ -84,14 +77,13 @@ impl<T> Future for PipeHandler<T>{
     type Output = Result<T>;
     #[inline]
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let this= Pin::into_inner(self);
-        this.my_status.wake.store(Some(cx.waker().clone()));
-        if  let Some(r)=this.my_status.result.take(){
+        let this = Pin::into_inner(self);
+        this.my_status.wake.register(cx.waker());
+        if let Some(r) = this.my_status.result.take() {
             Poll::Ready(r)
-        }else{
+        } else {
             Poll::Pending
         }
-
     }
 }
 
