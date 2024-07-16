@@ -11,7 +11,7 @@ async fn main() -> Result<()> {
     let res: Result<()> = single_runtime
         .run_until(async move {
             let join: JoinHandle<Result<()>> = tokio::task::spawn_local(async move {
-                for i in 0..100000 {
+                for i in 0..1000000 {
                     right.send(i);
                     let ok = right.recv().await?;
                     ensure!(ok == i + 1, "left return v error!!")
@@ -27,7 +27,7 @@ async fn main() -> Result<()> {
                     break;
                 }
             }
-            println!("time {}ms", start.elapsed().as_secs_f32());
+            println!("time {} sec", start.elapsed().as_secs_f32());
 
             join.await??;
             Ok(())
